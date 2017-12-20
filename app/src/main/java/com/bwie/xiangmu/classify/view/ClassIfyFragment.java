@@ -1,0 +1,83 @@
+package com.bwie.xiangmu.classify.view;
+
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import com.bwie.xiangmu.R;
+import com.bwie.xiangmu.classify.ClassifyConstract;
+import com.bwie.xiangmu.classify.adapter.LeftAdapter;
+import com.bwie.xiangmu.classify.adapter.RightAdapter;
+import com.bwie.xiangmu.classify.bean.OneBean;
+import com.bwie.xiangmu.classify.bean.TwoBean;
+import com.bwie.xiangmu.classify.presenter.LeftPresenter;
+import com.bwie.xiangmu.utils.Api;
+import com.bwie.xiangmu.utils.Toasts;
+
+import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
+
+
+public class ClassIfyFragment extends Fragment implements ClassifyConstract.IClassifyView {
+    @BindView(R.id.left_rcv)
+    RecyclerView leftRcv;
+    Unbinder unbinder;
+    @BindView(R.id.right_rcv)
+    RecyclerView rightRcv;
+    private LeftPresenter leftPresenter;
+    private int cid;
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.classify, container, false);
+        unbinder = ButterKnife.bind(this, v);
+        leftPresenter = new LeftPresenter(this);
+        leftPresenter.LoadList(Api.FENLIEURL);
+        leftPresenter.LoadRight(Api.FENLIEURL, 1);
+        return v;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
+    }
+
+    @Override
+    public void ShowList(final List<OneBean.DataBean> list) {
+        LeftAdapter leftAdapter = new LeftAdapter(list, getActivity());
+        leftRcv.setAdapter(leftAdapter);
+        leftRcv.setLayoutManager(new LinearLayoutManager(getActivity()));
+        leftAdapter.setOnLeftClickListener(new LeftAdapter.OnLeftClickListener() {
+            @Override
+            public void OnItemClickListener(View v, int position) {
+                //Toasts.showLong(getActivity(),list.get(position).getGc_name());
+                cid = list.get(position).getCid();
+                leftPresenter.LoadRight(Api.FENLIEURL, cid);
+            }
+        });
+    }
+
+    @Override
+    public void ShowRight(List<TwoBean.DataBean> list) {
+        RightAdapter rightAdapter = new RightAdapter(list,getActivity());
+        rightRcv.setAdapter(rightAdapter);
+        rightRcv.setLayoutManager(new LinearLayoutManager(getActivity()));
+    }
+
+    @Override
+    public void ShowError(String e) {
+        Toasts.showLong(getActivity(), e);
+        Log.e("hehehehehehehheheheheh", e);
+    }
+}
